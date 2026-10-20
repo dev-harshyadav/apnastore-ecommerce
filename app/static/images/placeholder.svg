@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <rect width="400" height="400" fill="#F2EEE8"/>
+  <circle cx="200" cy="180" r="48" fill="#E8E3DC"/>
+  <path d="M185 180 L200 165 L215 180" stroke="#707070" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <rect x="188" y="180" width="24" height="20" rx="3" fill="#D97745"/>
+  <text x="200" y="260" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="#707070" text-anchor="middle" letter-spacing="1">APNASTORE</text>
+  <text x="200" y="280" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#949089" text-anchor="middle">Curated Local Goods</text>
+</svg>

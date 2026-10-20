@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart — {{ store_name }}{% endblock %}
+
+{% block content %}
+<div class="container section">
+
+  <!-- Breadcrumbs -->
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <a href="{{ url_for('storefront.home') }}">Home</a>
+    <span class="breadcrumbs-separator">/</span>
+    <span style="color: var(--color-text-primary);">Shopping Cart</span>
+  </nav>
+
+  <div style="margin-bottom: var(--space-8);">
+    <span class="section-eyebrow">Review Your Selection</span>
+    <h1 style="margin-top: var(--space-1);">Shopping Cart</h1>
+  </div>
+
+  {% if cart.cart_items and cart.total_items > 0 %}
+    <div class="cart-layout">
+      
+      <!-- Left Column: Items List -->
+      <div>
+        <div class="cart-items-wrapper">
+          <!-- Header Row -->
+          <div class="cart-header-row">
+            <div>Product</div>
+            <div>Price</div>
+            <div>Quantity</div>
+            <div>Subtotal</div>
+            <div></div>
+          </div>
+
+          <!-- Product Rows -->
+          {% for item in cart.cart_items %}
+            <div class="cart-item-row">
+              
+              <!-- Product info -->
+              <div class="cart-product-cell">
+                <a href="{{ url_for('storefront.product_detail', slug=item.product.slug) }}" class="cart-product-thumb" aria-label="View {{ item.product.name }}">
+                  <img 
+                    src="{{ item.product.image_url }}" 
+                    alt="{{ item.product.name }}"
+                    loading="lazy"
+                    onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=300&q=80'"
+                  >
+                </a>
+                <div class="cart-product-details">
+                  <span class="cart-product-category">{{ item.product.category.name }}</span>
+                  <a href="{{ url_for('storefront.product_detail', slug=item.product.slug) }}" class="cart-product-name">
+                    {{ item.product.name }}
+                  </a>
+
+                  <!-- Stock Status Warning in Cart -->
+                  {% if item.is_out_of_stock %}
+                    <span class="badge badge-danger" style="width: fit-content; margin-top: 0.25rem;">
+                      Item currently out of stock. Please remove.
+                    </span>
+                  {% elif item.is_stock_exceeded %}
+                    <span class="badge badge-warning" style="width: fit-content; margin-top: 0.25rem;">
+                      Only {{ item.available_stock }} available. Adjusted.
+                    </span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Unit Price -->
+              <div class="cart-price-cell">
+                {{ item.unit_price | format_inr }}
+              </div>
+
+              <!-- Quantity Stepper Form -->
+              <div>
+                <form action="{{ url_for('cart.update_item') }}" method="POST" class="cart-qty-form">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="product_id" value="{{ item.product.id }}">
+                  <div class="qty-stepper">
+                    <button type="button" class="qty-btn qty-minus" aria-label="Decrease quantity">−</button>
+                    <input 
+                      type="number" 
+                      name="quantity" 
+                      class="qty-input" 
+                      value="{{ item.quantity }}" 
+                      min="1" 
+                      max="{{ item.product.stock_quantity }}"
+                      aria-label="Item quantity"
+                    >
+                    <button type="button" class="qty-btn qty-plus" aria-label="Increase quantity">+</button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Line Total -->
+              <div class="cart-total-cell">
+                {{ item.line_total | format_inr }}
+              </div>
+
+              <!-- Remove Item Button -->
+              <div>
+                <form action="{{ url_for('cart.remove_item') }}" method="POST">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="product_id" value="{{ item.product.id }}">
+                  <button type="submit" class="cart-remove-btn" title="Remove item from cart" aria-label="Remove {{ item.product.name }}">
+                    <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
+                  </button>
+                </form>
+              </div>
+
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Action Links Below Items -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-4);">
+          <a href="{{ url_for('storefront.catalog') }}" class="btn btn-outline btn-sm">
+            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+            Continue Shopping
+          </a>
+
+          <form action="{{ url_for('cart.clear') }}" method="POST" onsubmit="return confirm('Are you sure you want to empty your entire shopping cart?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-muted btn-sm">
+              <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+              Clear Cart
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Right Column: Order Summary -->
+      <div>
+        <div class="order-summary-card">
+          <h2 class="order-summary-title">Order Summary</h2>
+
+          <!-- Free Shipping Progress -->
+          {% if cart.qualifies_for_free_shipping %}
+            <div class="free-shipping-progress qualified">
+              <div style="display: flex; align-items: center; gap: var(--space-2);">
+                <i data-lucide="check-circle-2" style="width: 16px; height: 16px;"></i>
+                <span>You unlocked <strong>Free Delivery!</strong></span>
+              </div>
+            </div>
+          {% else %}
+            <div class="free-shipping-progress">
+              Add <strong>{{ cart.free_shipping_shortfall | format_inr }}</strong> more to unlock Free Neighbourhood Delivery.
+            </div>
+          {% endif %}
+
+          <div class="summary-row">
+            <span>Subtotal ({{ cart.total_items }} items)</span>
+            <span>{{ cart.subtotal | format_inr }}</span>
+          </div>
+
+          <div class="summary-row">
+            <span>Neighbourhood Shipping</span>
+            <span>
+              {% if cart.shipping == 0 %}
+                <span class="badge badge-success">FREE</span>
+              {% else %}
+                {{ cart.shipping | format_inr }}
+              {% endif %}
+            </span>
+          </div>
+
+          <div class="summary-row total-row">
+            <span>Estimated Total</span>
+            <span>{{ cart.grand_total | format_inr }}</span>
+          </div>
+
+          <a href="{{ url_for('checkout.index') }}" class="btn btn-primary btn-lg btn-block">
+            Proceed to Checkout
+            <i data-lucide="arrow-right" style="width: 18px; height: 18px;"></i>
+          </a>
+
+          <p style="font-size: var(--font-size-xs); color: var(--color-text-muted); text-align: center; margin-top: var(--space-3); margin-bottom: 0;">
+            Demonstration checkout &middot; No credit card required
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+  {% else %}
+    <!-- Empty Cart State -->
+    <div class="empty-state">
+      <div class="empty-state-icon">
+        <i data-lucide="shopping-bag" style="width: 32px; height: 32px;"></i>
+      </div>
+      <h2 class="empty-state-title">Your shopping bag is empty</h2>
+      <p class="empty-state-text">
+        Explore our curated collection of textiles, homeware, stationery, and daily essentials from your neighbourhood store.
+      </p>
+      <a href="{{ url_for('storefront.catalog') }}" class="btn btn-primary">
+        Explore the collection
+        <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

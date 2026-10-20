@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found (404) — {{ store_name }}{% endblock %}
+
+{% block content %}
+<div class="container section" style="display: flex; justify-content: center; align-items: center; min-height: 50vh;">
+  <div class="empty-state" style="max-width: 540px;">
+    <div class="empty-state-icon" style="color: var(--color-accent); background-color: var(--color-accent-light);">
+      <i data-lucide="compass" style="width: 32px; height: 32px;"></i>
+    </div>
+    <span class="section-eyebrow">404 Error</span>
+    <h1 class="empty-state-title" style="margin-top: var(--space-2);">Looking for something?</h1>
+    <p class="empty-state-text">
+      The product or page you requested could not be located. It might have been archived, restocked under a new link, or moved.
+    </p>
+    <div style="display: flex; gap: var(--space-3);">
+      <a href="{{ url_for('storefront.catalog') }}" class="btn btn-primary">
+        Browse Collection
+      </a>
+      <a href="{{ url_for('storefront.home') }}" class="btn btn-outline">
+        Return Home
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

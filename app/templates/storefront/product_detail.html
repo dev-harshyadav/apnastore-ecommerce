@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} — {{ store_name }}{% endblock %}
+{% block meta_description %}{{ product.description[:150] }}...{% endblock %}
+
+{% block content %}
+<div class="container section">
+
+  <!-- Breadcrumbs -->
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <a href="{{ url_for('storefront.home') }}">Home</a>
+    <span class="breadcrumbs-separator">/</span>
+    <a href="{{ url_for('storefront.catalog') }}">Shop</a>
+    <span class="breadcrumbs-separator">/</span>
+    <a href="{{ url_for('storefront.catalog', category=product.category.slug) }}">{{ product.category.name }}</a>
+    <span class="breadcrumbs-separator">/</span>
+    <span style="color: var(--color-text-primary);">{{ product.name }}</span>
+  </nav>
+
+  <div class="product-detail-layout" style="margin-top: var(--space-4);">
+    
+    <!-- Left Column: Imagery -->
+    <div class="product-gallery">
+      <div class="product-main-image">
+        <img 
+          src="{{ product.image_url }}" 
+          alt="{{ product.name }}"
+          loading="eager"
+          onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80'"
+        >
+      </div>
+    </div>
+
+    <!-- Right Column: Details & Order Box -->
+    <div class="product-detail-info">
+      
+      <div>
+        <a 
+          href="{{ url_for('storefront.catalog', category=product.category.slug) }}" 
+          class="badge badge-muted"
+          style="margin-bottom: var(--space-2); text-transform: uppercase;"
+        >
+          {{ product.category.name }}
+        </a>
+        <h1 class="product-detail-title">{{ product.name }}</h1>
+      </div>
+
+      <!-- Pricing & Discount -->
+      <div class="product-detail-price-box">
+        <span class="product-detail-price">{{ product.price | format_inr }}</span>
+        {% if product.compare_at_price %}
+          <span class="product-detail-mrp">MRP {{ product.compare_at_price | format_inr }}</span>
+          <span class="badge badge-accent">{{ product.discount_percentage }}% OFF</span>
+        {% endif %}
+      </div>
+
+      <!-- Stock Availability -->
+      <div>
+        {% if product.stock_quantity > 5 %}
+          <span class="badge badge-success">
+            <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i>
+            In Stock (Ready to dispatch)
+          </span>
+        {% elif product.stock_quantity > 0 %}
+          <span class="badge badge-warning">
+            <i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i>
+            Only {{ product.stock_quantity }} units left in stock
+          </span>
+        {% else %}
+          <span class="badge badge-danger">
+            <i data-lucide="x-circle" style="width: 14px; height: 14px;"></i>
+            Currently Out of Stock
+          </span>
+        {% endif %}
+      </div>
+
+      <!-- Description -->
+      <div style="font-size: var(--font-size-base); color: var(--color-text-secondary); line-height: 1.7;">
+        <p>{{ product.description }}</p>
+      </div>
+
+      <!-- Add to Cart Form -->
+      {% if product.is_in_stock %}
+        <form action="{{ url_for('cart.add_item') }}" method="POST" class="product-detail-form ajax-add-to-cart">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="product_id" value="{{ product.id }}">
+
+          <div style="display: flex; align-items: center; gap: var(--space-4);">
+            <div>
+              <label for="detail-quantity" style="display: block; font-size: var(--font-size-xs); font-weight: var(--font-weight-medium); margin-bottom: 0.35rem; color: var(--color-text-secondary);">Quantity</label>
+              <div class="qty-stepper">
+                <button type="button" class="qty-btn" onclick="let input=this.nextElementSibling; if(input.value > 1) input.value--;" aria-label="Decrease Quantity">−</button>
+                <input 
+                  type="number" 
+                  id="detail-quantity"
+                  name="quantity" 
+                  class="qty-input" 
+                  value="1" 
+                  min="1" 
+                  max="{{ product.stock_quantity }}"
+                  aria-label="Quantity"
+                >
+                <button type="button" class="qty-btn" onclick="let input=this.previousElementSibling; if(parseInt(input.value) < parseInt(input.max)) input.value++;" aria-label="Increase Quantity">+</button>
+              </div>
+            </div>
+
+            <div style="flex: 1; align-self: flex-end;">
+              <button type="submit" class="btn btn-primary btn-lg btn-block">
+                <i data-lucide="shopping-bag" style="width: 18px; height: 18px;"></i>
+                Add to Cart
+              </button>
+            </div>
+          </div>
+        </form>
+      {% else %}
+        <div style="padding: var(--space-4); background-color: var(--color-surface-muted); border-radius: var(--radius-sm); border: 1px solid var(--color-border); text-align: center;">
+          <p style="margin: 0; font-size: var(--font-size-sm); color: var(--color-text-secondary);">
+            This item is currently sold out. Check back soon as our artisans restock regularly.
+          </p>
+        </div>
+      {% endif %}
+
+      <!-- Trust & Delivery Specifications -->
+      <div class="product-specs-list">
+        <div style="display: flex; align-items: center; gap: var(--space-2);">
+          <i data-lucide="shield-check" style="width: 16px; height: 16px; color: var(--color-success);"></i>
+          <span>100% Guaranteed authentic Indian craftsmanship</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: var(--space-2);">
+          <i data-lucide="package" style="width: 16px; height: 16px; color: var(--color-accent);"></i>
+          <span>Carefully packed with recycled biodegradable paper</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: var(--space-2);">
+          <i data-lucide="truck" style="width: 16px; height: 16px; color: var(--color-info);"></i>
+          <span>Free delivery for orders above {{ free_shipping_threshold | format_inr }}</span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Related Products Section -->
+  {% if related_products %}
+    <section class="section" style="margin-top: var(--space-12); padding-top: var(--space-12); border-top: 1px solid var(--color-border);">
+      <div class="section-header flex-row">
+        <div>
+          <span class="section-eyebrow">Complementary Picks</span>
+          <h2 class="section-title">You might also appreciate</h2>
+        </div>
+        <a href="{{ url_for('storefront.catalog', category=product.category.slug) }}" class="btn btn-outline btn-sm">
+          More from {{ product.category.name }}
+        </a>
+      </div>
+
+      <div class="product-grid">
+        {% for rel in related_products %}
+          <article class="product-card">
+            <a href="{{ url_for('storefront.product_detail', slug=rel.slug) }}" class="product-card-media" aria-label="View {{ rel.name }}">
+              <img 
+                src="{{ rel.image_url }}" 
+                alt="{{ rel.name }}"
+                loading="lazy"
+                onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80'"
+              >
+            </a>
+            <div class="product-card-body">
+              <span class="product-card-category">{{ rel.category.name }}</span>
+              <h3 class="product-card-title">
+                <a href="{{ url_for('storefront.product_detail', slug=rel.slug) }}">{{ rel.name }}</a>
+              </h3>
+              <div class="product-card-price-row">
+                <span class="product-card-price">{{ rel.price | format_inr }}</span>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+</div>
+{% endblock %}

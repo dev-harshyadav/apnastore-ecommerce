@@ -1,0 +1,127 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Manage Orders — {{ store_name }} Portal{% endblock %}
+
+{% block admin_content %}
+<div>
+  <div class="admin-page-header">
+    <div>
+      <h1 style="font-size: 1.85rem; margin-bottom: 0.25rem;">Customer Orders</h1>
+      <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0;">
+        Track demonstration orders, inspect snapshots, update fulfilment states, and manage cancellations.
+      </p>
+    </div>
+  </div>
+
+  <!-- Search & Filter Toolbar -->
+  <div class="admin-card" style="padding: var(--space-4) var(--space-6); margin-bottom: var(--space-6);">
+    <form method="GET" action="{{ url_for('admin.orders') }}" style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3);">
+      
+      <!-- Search -->
+      <div style="flex: 1; min-width: 240px;">
+        <input 
+          type="search" 
+          name="q" 
+          class="form-control" 
+          placeholder="Search by order #, customer name, or email..." 
+          value="{{ search }}"
+          style="padding: 0.5rem 0.85rem;"
+        >
+      </div>
+
+      <!-- Status Filter -->
+      <div style="width: 180px;">
+        <select name="status" class="form-select" style="padding: 0.5rem 0.85rem;">
+          <option value="">All Statuses</option>
+          {% for st in valid_statuses %}
+            <option value="{{ st }}" {% if status_filter == st %}selected{% endif %}>{{ st }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-outline btn-sm">Filter</button>
+      {% if search or status_filter %}
+        <a href="{{ url_for('admin.orders') }}" class="btn btn-muted btn-sm">Reset</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Orders Table -->
+  <div class="admin-card">
+    <div class="table-responsive">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Order #</th>
+            <th>Customer</th>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Total Amount</th>
+            <th>Status</th>
+            <th style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ord in orders %}
+            <tr>
+              <td>
+                <a href="{{ url_for('admin.order_detail', order_id=ord.id) }}" style="font-family: monospace; font-weight: bold; color: var(--color-accent);">
+                  {{ ord.order_number }}
+                </a>
+              </td>
+              <td>
+                <div style="font-weight: var(--font-weight-medium);">{{ ord.customer_name }}</div>
+                <div style="font-size: var(--font-size-xs); color: var(--color-text-muted);">{{ ord.customer_email }}</div>
+              </td>
+              <td style="color: var(--color-text-secondary); font-size: var(--font-size-xs);">
+                {{ ord.created_at.strftime('%d %b %Y, %I:%M %p') }}
+              </td>
+              <td>{{ ord.total_items_count }} items</td>
+              <td style="font-weight: var(--font-weight-semibold);">
+                {{ ord.total_amount | format_inr }}
+              </td>
+              <td>
+                {% if ord.status in ['Confirmed', 'Delivered'] %}
+                  <span class="badge badge-success">{{ ord.status }}</span>
+                {% elif ord.status in ['Pending', 'Processing', 'Shipped'] %}
+                  <span class="badge badge-warning">{{ ord.status }}</span>
+                {% else %}
+                  <span class="badge badge-danger">{{ ord.status }}</span>
+                {% endif %}
+              </td>
+              <td style="text-align: right;">
+                <a href="{{ url_for('admin.order_detail', order_id=ord.id) }}" class="btn btn-muted btn-sm">
+                  Manage
+                </a>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="7" style="text-align: center; padding: var(--space-8); color: var(--color-text-secondary);">
+                No customer orders found matching your criteria.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if pagination.pages > 1 %}
+      <div style="padding: var(--space-4); border-top: 1px solid var(--color-border); display: flex; justify-content: center;">
+        <ul class="pagination" style="margin: 0;">
+          {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+              <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('admin.orders', page=p, q=search, status=status_filter) }}">
+                  {{ p }}
+                </a>
+              </li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

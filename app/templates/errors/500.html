@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}System Error (500) — {{ store_name }}{% endblock %}
+
+{% block content %}
+<div class="container section" style="display: flex; justify-content: center; align-items: center; min-height: 50vh;">
+  <div class="empty-state" style="max-width: 540px;">
+    <div class="empty-state-icon" style="color: var(--color-danger); background-color: var(--color-danger-bg);">
+      <i data-lucide="server-crash" style="width: 32px; height: 32px;"></i>
+    </div>
+    <span class="section-eyebrow">500 Server Error</span>
+    <h1 class="empty-state-title" style="margin-top: var(--space-2);">Something went wrong</h1>
+    <p class="empty-state-text">
+      Our server encountered an internal issue. Any pending database transactions were rolled back automatically without affecting your orders or account.
+    </p>
+    <a href="{{ url_for('storefront.home') }}" class="btn btn-primary">
+      Return to Storefront
+    </a>
+  </div>
+</div>
+{% endblock %}

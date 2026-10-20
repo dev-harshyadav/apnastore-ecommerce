@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Order Confirmed #{{ order.order_number }} — {{ store_name }}{% endblock %}
+
+{% block content %}
+<div class="container section">
+
+  <div class="confirmation-card">
+    
+    <!-- Header -->
+    <div class="confirmation-header">
+      <div class="confirmation-check-icon" aria-hidden="true">
+        <i data-lucide="check" style="width: 36px; height: 36px;"></i>
+      </div>
+      <span class="section-eyebrow">Order Placed Successfully</span>
+      <h1 style="font-size: 2rem; margin-top: var(--space-2); margin-bottom: var(--space-2);">Thank you for your order!</h1>
+      <p style="color: var(--color-text-secondary); margin: 0;">
+        We've received your demonstration order and reserved your items in the store database.
+      </p>
+    </div>
+
+    <!-- Metadata Grid -->
+    <div class="confirmation-meta-grid">
+      <div>
+        <div style="font-size: var(--font-size-xs); color: var(--color-text-muted); text-transform: uppercase;">Order Number</div>
+        <div style="font-weight: var(--font-weight-bold); color: var(--color-accent); font-family: monospace; font-size: var(--font-size-sm); margin-top: 2px;">{{ order.order_number }}</div>
+      </div>
+      <div>
+        <div style="font-size: var(--font-size-xs); color: var(--color-text-muted); text-transform: uppercase;">Order Date</div>
+        <div style="font-weight: var(--font-weight-medium); color: var(--color-text-primary); margin-top: 2px;">{{ order.created_at.strftime('%d %b %Y, %I:%M %p') }}</div>
+      </div>
+      <div>
+        <div style="font-size: var(--font-size-xs); color: var(--color-text-muted); text-transform: uppercase;">Current Status</div>
+        <div style="margin-top: 2px;">
+          <span class="badge badge-success">{{ order.status }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customer & Delivery Details -->
+    <div style="display: grid; grid-template-columns: 1fr; gap: var(--space-6); margin-bottom: var(--space-8); padding-bottom: var(--space-6); border-bottom: 1px solid var(--color-border);">
+      <div>
+        <h2 style="font-size: var(--font-size-sm); text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: var(--space-2);">Customer & Delivery Destination</h2>
+        <div style="font-size: var(--font-size-sm); line-height: 1.6; color: var(--color-text-secondary);">
+          <strong style="color: var(--color-text-primary);">{{ order.customer_name }}</strong><br>
+          {{ order.address_line }}<br>
+          {{ order.city }}, {{ order.state }} — {{ order.postal_code }}<br>
+          Email: {{ order.customer_email }} &middot; Phone: {{ order.customer_phone }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Ordered Items Table -->
+    <h2 style="font-size: var(--font-size-sm); text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: var(--space-3);">Ordered Items</h2>
+    <table class="confirmation-items-table" aria-label="Order summary items">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th style="text-align: center;">Qty</th>
+          <th style="text-align: right;">Unit Price</th>
+          <th style="text-align: right;">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in order.items %}
+          <tr>
+            <td>
+              <div style="font-weight: var(--font-weight-medium); color: var(--color-text-primary);">
+                {{ item.product_name_snapshot }}
+              </div>
+            </td>
+            <td style="text-align: center; color: var(--color-text-secondary);">
+              {{ item.quantity }}
+            </td>
+            <td style="text-align: right; color: var(--color-text-secondary);">
+              {{ item.unit_price_snapshot | format_inr }}
+            </td>
+            <td style="text-align: right; font-weight: var(--font-weight-semibold); color: var(--color-text-primary);">
+              {{ item.line_total | format_inr }}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- Monetary Totals -->
+    <div style="border-top: 1px solid var(--color-border); padding-top: var(--space-4); margin-bottom: var(--space-8);">
+      <div class="summary-row">
+        <span>Subtotal</span>
+        <span>{{ order.subtotal | format_inr }}</span>
+      </div>
+      <div class="summary-row">
+        <span>Shipping</span>
+        <span>
+          {% if order.shipping_amount == 0 %}
+            <span class="badge badge-success">FREE</span>
+          {% else %}
+            {{ order.shipping_amount | format_inr }}
+          {% endif %}
+        </span>
+      </div>
+      <div class="summary-row total-row" style="margin-bottom: 0;">
+        <span>Final Total (INR)</span>
+        <span>{{ order.total_amount | format_inr }}</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: space-between; align-items: center;">
+      <a href="{{ url_for('storefront.catalog') }}" class="btn btn-outline">
+        <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+        Continue Shopping
+      </a>
+
+      <button type="button" class="btn btn-muted" onclick="window.print();">
+        <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
+        Print Receipt
+      </button>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

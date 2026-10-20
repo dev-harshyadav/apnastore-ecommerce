@@ -1,0 +1,145 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Order #{{ order.order_number }} — {{ store_name }} Portal{% endblock %}
+
+{% block admin_content %}
+<div style="max-width: 900px;">
+
+  <div class="admin-page-header">
+    <div>
+      <a href="{{ url_for('admin.orders') }}" class="btn btn-muted btn-sm" style="margin-bottom: var(--space-2);">
+        <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+        Back to Orders
+      </a>
+      <h1 style="font-size: 1.85rem; margin-bottom: 0.25rem;">Order Details</h1>
+      <div style="font-family: monospace; font-size: var(--font-size-sm); color: var(--color-accent); font-weight: bold;">
+        #{{ order.order_number }}
+      </div>
+    </div>
+
+    <div>
+      {% if order.status in ['Confirmed', 'Delivered'] %}
+        <span class="badge badge-success" style="font-size: var(--font-size-sm); padding: 0.4rem 0.85rem;">{{ order.status }}</span>
+      {% elif order.status in ['Pending', 'Processing', 'Shipped'] %}
+        <span class="badge badge-warning" style="font-size: var(--font-size-sm); padding: 0.4rem 0.85rem;">{{ order.status }}</span>
+      {% else %}
+        <span class="badge badge-danger" style="font-size: var(--font-size-sm); padding: 0.4rem 0.85rem;">{{ order.status }}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr; gap: var(--space-6);">
+    
+    <!-- Status Update Form Box -->
+    <div class="admin-card" style="padding: var(--space-6); background-color: var(--color-surface);">
+      <h2 style="font-size: var(--font-size-md); margin-bottom: var(--space-4);">Update Fulfilment Status</h2>
+      <form method="POST" style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-4);">
+        {{ form.hidden_tag() }}
+
+        <div style="width: 260px;">
+          <label class="form-label" for="status">Order Status</label>
+          {{ form.status(class="form-select") }}
+        </div>
+
+        <div>
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+            Update Status
+          </button>
+        </div>
+      </form>
+
+      {% if order.stock_restored %}
+        <div style="margin-top: var(--space-3); font-size: var(--font-size-xs); color: var(--color-warning);">
+          <i data-lucide="info" style="width: 12px; height: 12px; vertical-align: middle;"></i>
+          Stock items for this order were automatically restored to active inventory upon cancellation.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Customer & Shipping Summary -->
+    <div style="display: grid; grid-template-columns: 1fr; gap: var(--space-6);">
+      <div class="admin-card" style="padding: var(--space-6);">
+        <h2 style="font-size: var(--font-size-sm); text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: var(--space-3);">Customer & Delivery Destination</h2>
+        <div style="font-size: var(--font-size-sm); line-height: 1.6; color: var(--color-text-secondary);">
+          <strong style="color: var(--color-text-primary); font-size: var(--font-size-base);">{{ order.customer_name }}</strong><br>
+          {{ order.address_line }}<br>
+          {{ order.city }}, {{ order.state }} — <strong>{{ order.postal_code }}</strong><br>
+          <div style="margin-top: var(--space-2);">
+            Email: <a href="mailto:{{ order.customer_email }}" style="color: var(--color-accent);">{{ order.customer_email }}</a><br>
+            Phone: <a href="tel:{{ order.customer_phone }}" style="color: var(--color-accent);">{{ order.customer_phone }}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ordered Items Table -->
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h2 style="font-size: var(--font-size-md); margin: 0;">Ordered Items Snapshot ({{ order.total_items_count }} items)</h2>
+      </div>
+
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Item Snapshot</th>
+              <th style="text-align: center;">Quantity</th>
+              <th style="text-align: right;">Unit Price Snapshot</th>
+              <th style="text-align: right;">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in order.items %}
+              <tr>
+                <td>
+                  <div style="font-weight: var(--font-weight-medium); color: var(--color-text-primary);">
+                    {{ item.product_name_snapshot }}
+                  </div>
+                  {% if item.product %}
+                    <div style="font-size: var(--font-size-xs); color: var(--color-text-muted);">
+                      Current catalog status: 
+                      {% if item.product.is_active %}
+                        <span style="color: var(--color-success);">Active</span>
+                      {% else %}
+                        <span style="color: var(--color-text-muted);">Archived</span>
+                      {% endif %}
+                      (Current Stock: {{ item.product.stock_quantity }})
+                    </div>
+                  {% else %}
+                    <div style="font-size: var(--font-size-xs); color: var(--color-text-muted);">
+                      Product unlinked or deleted from catalog
+                    </div>
+                  {% endif %}
+                </td>
+                <td style="text-align: center;">{{ item.quantity }}</td>
+                <td style="text-align: right;">{{ item.unit_price_snapshot | format_inr }}</td>
+                <td style="text-align: right; font-weight: var(--font-weight-semibold);">
+                  {{ item.line_total | format_inr }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="padding: var(--space-6); background-color: var(--color-surface-muted); border-top: 1px solid var(--color-border); display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2);">
+        <div style="display: flex; justify-content: space-between; width: 260px; font-size: var(--font-size-sm); color: var(--color-text-secondary);">
+          <span>Subtotal:</span>
+          <span>{{ order.subtotal | format_inr }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; width: 260px; font-size: var(--font-size-sm); color: var(--color-text-secondary);">
+          <span>Shipping:</span>
+          <span>{{ order.shipping_amount | format_inr }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; width: 260px; font-size: var(--font-size-md); font-weight: bold; color: var(--color-text-primary); border-top: 1px solid var(--color-border); padding-top: var(--space-2); margin-top: var(--space-1);">
+          <span>Total:</span>
+          <span>{{ order.total_amount | format_inr }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

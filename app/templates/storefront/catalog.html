@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}Shop Collection — {{ store_name }}{% endblock %}
+
+{% block content %}
+<div class="container section">
+
+  <!-- Breadcrumbs -->
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <a href="{{ url_for('storefront.home') }}">Home</a>
+    <span class="breadcrumbs-separator">/</span>
+    <a href="{{ url_for('storefront.catalog') }}">Shop</a>
+    {% if selected_category %}
+      <span class="breadcrumbs-separator">/</span>
+      <span style="color: var(--color-text-primary);">{{ selected_category.name }}</span>
+    {% endif %}
+  </nav>
+
+  <!-- Page Header -->
+  <div style="margin-bottom: var(--space-8);">
+    <span class="section-eyebrow">
+      {% if selected_category %}
+        {{ selected_category.name }}
+      {% else %}
+        Catalog
+      {% endif %}
+    </span>
+    <h1 style="margin-top: var(--space-1); margin-bottom: var(--space-2);">Discover the collection</h1>
+    <p style="color: var(--color-text-secondary); max-width: 600px;">
+      {% if selected_category and selected_category.description %}
+        {{ selected_category.description }}
+      {% else %}
+        Find something useful, beautiful, or just right for you. Thoughtfully designed essentials made to be cherished.
+      {% endif %}
+    </p>
+  </div>
+
+  <div class="catalog-layout">
+    
+    <!-- Left Sidebar: Filters -->
+    <aside class="catalog-sidebar" aria-label="Product Filters">
+      <form id="filter-form" action="{{ url_for('storefront.catalog') }}" method="GET">
+        <!-- Preserve search query and sorting -->
+        {% if search_query %}
+          <input type="hidden" name="q" value="{{ search_query }}">
+        {% endif %}
+        <input type="hidden" name="sort" value="{{ sort_by }}">
+
+        <!-- Categories Filter -->
+        <div class="filter-section">
+          <h2 class="filter-title">Categories</h2>
+          <ul class="category-filter-list">
+            <li class="category-filter-item {% if not selected_category_slug %}active{% endif %}">
+              <a href="{{ url_for('storefront.catalog', q=search_query, sort=sort_by, min_price=min_price, max_price=max_price) }}">
+                <span>All Categories</span>
+              </a>
+            </li>
+            {% for cat in categories %}
+              <li class="category-filter-item {% if selected_category_slug == cat.slug %}active{% endif %}">
+                <a href="{{ url_for('storefront.catalog', category=cat.slug, q=search_query, sort=sort_by, min_price=min_price, max_price=max_price) }}">
+                  <span>{{ cat.name }}</span>
+                  <span style="font-size: var(--font-size-xs); color: var(--color-text-muted);">{{ cat.active_products_count }}</span>
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <!-- Price Range Filter -->
+        <div class="filter-section">
+          <h2 class="filter-title">Price Range (₹)</h2>
+          {% if selected_category_slug %}
+            <input type="hidden" name="category" value="{{ selected_category_slug }}">
+          {% endif %}
+          <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-3);">
+            <div>
+              <label for="min_price" class="sr-only">Minimum Price</label>
+              <input 
+                type="number" 
+                id="min_price" 
+                name="min_price" 
+                class="form-control" 
+                placeholder="Min ₹" 
+                value="{{ min_price if min_price is not none else '' }}"
+                min="0"
+                step="50"
+              >
+            </div>
+            <div style="display: flex; align-items: center; color: var(--color-text-muted);">–</div>
+            <div>
+              <label for="max_price" class="sr-only">Maximum Price</label>
+              <input 
+                type="number" 
+                id="max_price" 
+                name="max_price" 
+                class="form-control" 
+                placeholder="Max ₹" 
+                value="{{ max_price if max_price is not none else '' }}"
+                min="0"
+                step="50"
+              >
+            </div>
+          </div>
+          <button type="submit" class="btn btn-outline btn-sm btn-block">Apply Price</button>
+        </div>
+
+        <!-- Reset Filters -->
+        {% if search_query or selected_category_slug or min_price is not none or max_price is not none or sort_by != 'recommended' %}
+          <div style="padding-top: var(--space-3);">
+            <a href="{{ url_for('storefront.catalog') }}" class="btn btn-muted btn-sm btn-block">
+              <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+              Clear all filters
+            </a>
+          </div>
+        {% endif %}
+      </form>
+    </aside>
+
+    <!-- Right Column: Products & Toolbar -->
+    <main>
+      <!-- Toolbar -->
+      <div class="catalog-toolbar">
+        <div class="catalog-count">
+          Showing <strong>{{ pagination.items|length }}</strong> of <strong>{{ pagination.total }}</strong> products
+          {% if search_query %}
+            for <em>"{{ search_query }}"</em>
+          {% endif %}
+        </div>
+
+        <!-- Sort Control -->
+        <div class="catalog-sort-form">
+          <label for="catalog-sort-select" style="font-size: var(--font-size-xs); color: var(--color-text-secondary); white-space: nowrap;">Sort by:</label>
+          <select 
+            id="catalog-sort-select" 
+            class="form-select" 
+            style="width: auto; padding: 0.45rem 2rem 0.45rem 0.85rem; font-size: var(--font-size-xs);"
+            onchange="location = this.value;"
+          >
+            <option value="{{ url_for('storefront.catalog', category=selected_category_slug, q=search_query, min_price=min_price, max_price=max_price, sort='recommended') }}" {% if sort_by == 'recommended' %}selected{% endif %}>Recommended</option>
+            <option value="{{ url_for('storefront.catalog', category=selected_category_slug, q=search_query, min_price=min_price, max_price=max_price, sort='price_asc') }}" {% if sort_by == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+            <option value="{{ url_for('storefront.catalog', category=selected_category_slug, q=search_query, min_price=min_price, max_price=max_price, sort='price_desc') }}" {% if sort_by == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+            <option value="{{ url_for('storefront.catalog', category=selected_category_slug, q=search_query, min_price=min_price, max_price=max_price, sort='name_asc') }}" {% if sort_by == 'name_asc' %}selected{% endif %}>Name: A to Z</option>
+            <option value="{{ url_for('storefront.catalog', category=selected_category_slug, q=search_query, min_price=min_price, max_price=max_price, sort='newest') }}" {% if sort_by == 'newest' %}selected{% endif %}>Newest</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Products Grid -->
+      {% if products %}
+        <div class="product-grid">
+          {% for product in products %}
+            <article class="product-card">
+              <a href="{{ url_for('storefront.product_detail', slug=product.slug) }}" class="product-card-media" aria-label="View {{ product.name }}">
+                <img 
+                  src="{{ product.image_url }}" 
+                  alt="{{ product.name }}"
+                  loading="lazy"
+                  onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80'"
+                >
+                {% if product.discount_percentage > 0 %}
+                  <span class="badge badge-accent product-card-badge">{{ product.discount_percentage }}% OFF</span>
+                {% elif product.is_low_stock %}
+                  <span class="badge badge-warning product-card-badge">Low Stock</span>
+                {% endif %}
+              </a>
+
+              <div class="product-card-body">
+                <span class="product-card-category">{{ product.category.name }}</span>
+                <h3 class="product-card-title">
+                  <a href="{{ url_for('storefront.product_detail', slug=product.slug) }}">{{ product.name }}</a>
+                </h3>
+
+                <div class="product-card-price-row">
+                  <span class="product-card-price">{{ product.price | format_inr }}</span>
+                  {% if product.compare_at_price %}
+                    <span class="product-card-compare-price">{{ product.compare_at_price | format_inr }}</span>
+                  {% endif %}
+                </div>
+
+                <div class="product-card-actions">
+                  {% if product.is_in_stock %}
+                    <form action="{{ url_for('cart.add_item') }}" method="POST" class="ajax-add-to-cart" style="width: 100%;">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <input type="hidden" name="product_id" value="{{ product.id }}">
+                      <input type="hidden" name="quantity" value="1">
+                      <button type="submit" class="btn btn-outline btn-sm btn-block">
+                        <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                        Add to Cart
+                      </button>
+                    </form>
+                  {% else %}
+                    <button type="button" class="btn btn-muted btn-sm btn-block disabled" disabled>
+                      Out of Stock
+                    </button>
+                  {% endif %}
+                </div>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+          <nav aria-label="Catalog Pagination">
+            <ul class="pagination">
+              <!-- Previous Page -->
+              <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                <a 
+                  class="page-link" 
+                  href="{{ url_for('storefront.catalog', page=pagination.prev_num, category=selected_category_slug, q=search_query, min_price=min_price, max_price=max_price, sort=sort_by) }}"
+                  aria-label="Previous Page"
+                >
+                  <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>
+                </a>
+              </li>
+
+              <!-- Page Numbers -->
+              {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if p %}
+                  <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                    <a 
+                      class="page-link" 
+                      href="{{ url_for('storefront.catalog', page=p, category=selected_category_slug, q=search_query, min_price=min_price, max_price=max_price, sort=sort_by) }}"
+                    >
+                      {{ p }}
+                    </a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+              {% endfor %}
+
+              <!-- Next Page -->
+              <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                <a 
+                  class="page-link" 
+                  href="{{ url_for('storefront.catalog', page=pagination.next_num, category=selected_category_slug, q=search_query, min_price=min_price, max_price=max_price, sort=sort_by) }}"
+                  aria-label="Next Page"
+                >
+                  <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        {% endif %}
+
+      {% else %}
+        <!-- Empty Results State -->
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <i data-lucide="search-x" style="width: 32px; height: 32px;"></i>
+          </div>
+          <h2 class="empty-state-title">No matching products found</h2>
+          <p class="empty-state-text">
+            We couldn't find any products matching your current search or filter criteria. 
+            Try adjusting your price range, searching for another keyword, or resetting filters.
+          </p>
+          <a href="{{ url_for('storefront.catalog') }}" class="btn btn-primary">
+            Clear all filters
+          </a>
+        </div>
+      {% endif %}
+
+    </main>
+
+  </div>
+
+</div>
+{% endblock %}

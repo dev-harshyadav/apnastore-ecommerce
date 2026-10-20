@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}{{ store_name }}{% endblock %} — {{ store_tagline }}</title>
+  <meta name="description" content="{% block meta_description %}Thoughtfully selected products from your neighbourhood store, online.{% endblock %}">
+
+  <!-- Typography: Playfair Display & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Core Stylesheets -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/storefront.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/cart-checkout.css') }}">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- Announcement Bar -->
+  <aside class="announcement-bar" role="region" aria-label="Store Announcement">
+    Thoughtfully selected products. Convenient neighbourhood shopping. <strong>Free delivery on orders over {{ free_shipping_threshold | format_inr }}</strong>
+  </aside>
+
+  <!-- Global Header -->
+  <header class="site-header">
+    <div class="container header-container">
+      
+      <!-- Brand Logo -->
+      <a href="{{ url_for('storefront.home') }}" class="site-logo" aria-label="APNASTORE Home">
+        <span class="logo-badge" aria-hidden="true"></span>
+        {{ store_name }}
+      </a>
+
+      <!-- Desktop Navigation -->
+      <nav class="site-nav" aria-label="Main Navigation">
+        <a href="{{ url_for('storefront.home') }}" class="nav-link {% if request.endpoint == 'storefront.home' %}active{% endif %}">Home</a>
+        <a href="{{ url_for('storefront.catalog') }}" class="nav-link {% if request.endpoint == 'storefront.catalog' and not request.args.get('category') %}active{% endif %}">Shop All</a>
+        <a href="{{ url_for('storefront.all_categories') }}" class="nav-link {% if request.endpoint == 'storefront.all_categories' %}active{% endif %}">Categories</a>
+        <a href="{{ url_for('storefront.about') }}" class="nav-link {% if request.endpoint == 'storefront.about' %}active{% endif %}">Our Story</a>
+      </nav>
+
+      <!-- Global Search -->
+      <form action="{{ url_for('storefront.catalog') }}" method="GET" class="header-search" role="search">
+        <span class="header-search-icon" aria-hidden="true"><i data-lucide="search" style="width: 16px; height: 16px;"></i></span>
+        <input 
+          type="search" 
+          name="q" 
+          class="header-search-input" 
+          placeholder="Search tea, journals, cotton apparel..." 
+          value="{{ request.args.get('q', '') }}"
+          aria-label="Search catalog"
+        >
+      </form>
+
+      <!-- Header Actions -->
+      <div class="header-actions">
+        <!-- Cart Button -->
+        <a href="{{ url_for('cart.view_cart') }}" class="cart-btn" aria-label="Shopping Cart">
+          <i data-lucide="shopping-bag" style="width: 18px; height: 18px;" aria-hidden="true"></i>
+          <span>Cart</span>
+          <span class="cart-count-badge" style="{% if cart_count == 0 %}display: none;{% endif %}">{{ cart_count }}</span>
+        </a>
+
+        <!-- Admin Portal Entry -->
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('admin.dashboard') }}" class="btn btn-muted btn-sm" title="Admin Portal">
+            <i data-lucide="layout-dashboard" style="width: 16px; height: 16px;"></i>
+            <span>Portal</span>
+          </a>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}" class="btn btn-muted btn-sm" title="Store Staff Login">
+            <i data-lucide="shield" style="width: 15px; height: 15px;"></i>
+            <span>Staff</span>
+          </a>
+        {% endif %}
+
+        <!-- Mobile Menu Toggle -->
+        <button type="button" class="mobile-menu-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <i data-lucide="menu" style="width: 24px; height: 24px;"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Mobile Drawer -->
+  <div class="mobile-nav" aria-label="Mobile Navigation">
+    <ul class="mobile-nav-links">
+      <li><a href="{{ url_for('storefront.home') }}" class="mobile-nav-link">Home</a></li>
+      <li><a href="{{ url_for('storefront.catalog') }}" class="mobile-nav-link">Shop Catalog</a></li>
+      <li><a href="{{ url_for('storefront.all_categories') }}" class="mobile-nav-link">Categories</a></li>
+      <li><a href="{{ url_for('storefront.about') }}" class="mobile-nav-link">Our Story</a></li>
+      <li><a href="{{ url_for('cart.view_cart') }}" class="mobile-nav-link">Shopping Cart ({{ cart_count }})</a></li>
+      <li><a href="{{ url_for('auth.login') }}" class="mobile-nav-link">Staff Portal</a></li>
+    </ul>
+    
+    <div style="margin-top: var(--space-6);">
+      <form action="{{ url_for('storefront.catalog') }}" method="GET">
+        <input 
+          type="search" 
+          name="q" 
+          class="form-control" 
+          placeholder="Search products..." 
+          value="{{ request.args.get('q', '') }}"
+        >
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="site-main" id="main-content">
+    <!-- Flash Messages Container -->
+    <div class="container" style="padding-top: var(--space-4);">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="alert-container">
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category if category != 'message' else 'info' }}" role="alert">
+                <i data-lucide="info" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
+                <div>{{ message }}</div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        
+        <!-- Column 1: Brand -->
+        <div>
+          <a href="{{ url_for('storefront.home') }}" class="site-logo" style="margin-bottom: var(--space-3);">
+            <span class="logo-badge"></span>
+            {{ store_name }}
+          </a>
+          <p style="font-size: var(--font-size-sm); margin-bottom: var(--space-4); max-width: 320px;">
+            {{ store_tagline }} Thoughtfully sourced home goods, textiles, stationery, and daily essentials from trusted Indian makers.
+          </p>
+          <div style="font-size: var(--font-size-xs); color: var(--color-text-muted);">
+            Prodigy Infotech Internship Project — Task 03
+          </div>
+        </div>
+
+        <!-- Column 2: Quick Links -->
+        <div>
+          <h2 class="footer-heading">Explore</h2>
+          <ul class="footer-links">
+            <li><a href="{{ url_for('storefront.home') }}">Home</a></li>
+            <li><a href="{{ url_for('storefront.catalog') }}">All Products</a></li>
+            <li><a href="{{ url_for('storefront.all_categories') }}">Categories</a></li>
+            <li><a href="{{ url_for('cart.view_cart') }}">Shopping Cart</a></li>
+            <li><a href="{{ url_for('storefront.about') }}">Our Story</a></li>
+          </ul>
+        </div>
+
+        <!-- Column 3: Categories -->
+        <div>
+          <h2 class="footer-heading">Categories</h2>
+          <ul class="footer-links">
+            {% for cat in nav_categories[:5] %}
+              <li><a href="{{ url_for('storefront.catalog', category=cat.slug) }}">{{ cat.name }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <!-- Column 4: Demonstration Contact -->
+        <div>
+          <h2 class="footer-heading">Store Information</h2>
+          <ul class="footer-links" style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">
+            <li><strong>Demonstration Retail Store</strong></li>
+            <li>12th Main Road, Indiranagar</li>
+            <li>Bengaluru, Karnataka 560038</li>
+            <li>contact@apnastore.in (Demo)</li>
+            <li>+91 (080) 2520-0000</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Footer Bottom -->
+      <div class="footer-bottom">
+        <div>
+          &copy; {{ 2026 }} {{ store_name }}. Built for Prodigy Infotech Internship Task 03.
+        </div>
+        <div style="display: flex; gap: var(--space-4);">
+          <a href="{{ url_for('storefront.privacy') }}" style="color: inherit;">Privacy Policy</a>
+          <a href="{{ url_for('storefront.terms') }}" style="color: inherit;">Terms of Service</a>
+          <a href="{{ url_for('auth.login') }}" style="color: inherit;">Admin Portal</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}APNASTORE — Good things, closer to home{% endblock %}
+
+{% block content %}
+<!-- Section 1: Editorial Hero -->
+<section class="hero-section">
+  <div class="container">
+    <div class="hero-grid">
+      
+      <!-- Hero Text Column -->
+      <div class="hero-content">
+        <div class="hero-tag">
+          <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
+          <span>Curated Local Goods</span>
+        </div>
+        <h1 class="hero-title">Good things, closer to home.</h1>
+        <p class="hero-description">
+          Discover everyday essentials and thoughtful finds from your neighbourhood store. 
+          From handspun textiles to artisanal coffees and handcrafted stationery.
+        </p>
+        <div class="hero-actions">
+          <a href="{{ url_for('storefront.catalog') }}" class="btn btn-primary btn-lg">
+            Explore the collection
+            <i data-lucide="arrow-right" style="width: 18px; height: 18px;"></i>
+          </a>
+          <a href="#categories" class="btn btn-outline btn-lg">
+            Browse categories
+          </a>
+        </div>
+      </div>
+
+      <!-- Hero Visual Column -->
+      <div class="hero-imagery">
+        <div class="hero-image-card">
+          <img 
+            src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=1000&q=80" 
+            alt="Warm artisanal ceramics and hand-poured candle on a wooden table"
+            loading="eager"
+          >
+          <div class="hero-floating-pill">
+            <span>Neighbourhood Edit</span>
+            <span>Artisanal & Sustainable</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Section 2: Shop by Category -->
+<section class="section" id="categories">
+  <div class="container">
+    <div class="section-header text-center">
+      <span class="section-eyebrow">Explore Collections</span>
+      <h2 class="section-title">Shop by Category</h2>
+      <p class="section-subtitle">
+        Everything you need for home, wardrobe, study, and pantry, thoughtfully organized.
+      </p>
+    </div>
+
+    <div class="category-grid">
+      {% for category in categories %}
+        <a href="{{ url_for('storefront.catalog', category=category.slug) }}" class="category-card">
+          <div class="category-card-img-wrap">
+            <img 
+              src="{{ category.image_url or url_for('static', filename='images/placeholder.svg') }}" 
+              alt="{{ category.name }}"
+              loading="lazy"
+            >
+          </div>
+          <div class="category-card-body">
+            <h3 class="category-card-title">{{ category.name }}</h3>
+            <span class="category-card-count">{{ category.active_products_count }} items</span>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Section 3: Featured Products -->
+<section class="section" style="background-color: var(--color-surface); border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border);">
+  <div class="container">
+    <div class="section-header flex-row">
+      <div>
+        <span class="section-eyebrow">Handpicked Essentials</span>
+        <h2 class="section-title">Featured Products</h2>
+      </div>
+      <a href="{{ url_for('storefront.catalog') }}" class="btn btn-outline btn-sm">
+        View all ({{ featured_products|length }}+)
+        <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+      </a>
+    </div>
+
+    <div class="product-grid">
+      {% for product in featured_products %}
+        <article class="product-card">
+          <a href="{{ url_for('storefront.product_detail', slug=product.slug) }}" class="product-card-media" aria-label="View {{ product.name }}">
+            <img 
+              src="{{ product.image_url }}" 
+              alt="{{ product.name }}"
+              loading="lazy"
+              onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80'"
+            >
+            {% if product.discount_percentage > 0 %}
+              <span class="badge badge-accent product-card-badge">{{ product.discount_percentage }}% OFF</span>
+            {% elif product.is_low_stock %}
+              <span class="badge badge-warning product-card-badge">Low Stock</span>
+            {% endif %}
+          </a>
+
+          <div class="product-card-body">
+            <span class="product-card-category">{{ product.category.name }}</span>
+            <h3 class="product-card-title">
+              <a href="{{ url_for('storefront.product_detail', slug=product.slug) }}">{{ product.name }}</a>
+            </h3>
+
+            <div class="product-card-price-row">
+              <span class="product-card-price">{{ product.price | format_inr }}</span>
+              {% if product.compare_at_price %}
+                <span class="product-card-compare-price">{{ product.compare_at_price | format_inr }}</span>
+              {% endif %}
+            </div>
+
+            <div class="product-card-actions">
+              {% if product.is_in_stock %}
+                <form action="{{ url_for('cart.add_item') }}" method="POST" class="ajax-add-to-cart" style="width: 100%;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="product_id" value="{{ product.id }}">
+                  <input type="hidden" name="quantity" value="1">
+                  <button type="submit" class="btn btn-outline btn-sm btn-block">
+                    <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                    Add to Cart
+                  </button>
+                </form>
+              {% else %}
+                <button type="button" class="btn btn-muted btn-sm btn-block disabled" disabled>
+                  Out of Stock
+                </button>
+              {% endif %}
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Section 4: Brand Story -->
+<section class="section story-section">
+  <div class="container">
+    <div class="story-grid">
+      <div class="story-imagery">
+        <img 
+          src="https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=1000&q=80" 
+          alt="Artisan handweaving organic cotton textiles"
+          loading="lazy"
+        >
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+        <span class="section-eyebrow">Our Philosophy</span>
+        <h2 style="font-size: 2.25rem;">Honest goods made to last.</h2>
+        <p>
+          APNASTORE brings the familiarity and care of your favourite local retailer into a seamless modern digital experience. 
+          We believe you shouldn't have to choose between convenience and supporting authentic craftsmanship.
+        </p>
+        <p>
+          Every item in our collection is evaluated for durability, transparent sourcing, and practical utility. 
+          No mass-produced generic novelties — just genuine goods for your daily rhythm.
+        </p>
+        <div style="margin-top: var(--space-2);">
+          <a href="{{ url_for('storefront.about') }}" class="btn btn-outline">
+            Read our full story
+            <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 5: Popular In-Demand Finds -->
+<section class="section">
+  <div class="container">
+    <div class="section-header flex-row">
+      <div>
+        <span class="section-eyebrow">Neighbourhood Favorites</span>
+        <h2 class="section-title">Popular This Week</h2>
+      </div>
+      <a href="{{ url_for('storefront.catalog') }}" class="btn btn-outline btn-sm">
+        Browse Collection
+      </a>
+    </div>
+
+    <div class="product-grid">
+      {% for product in popular_products %}
+        <article class="product-card">
+          <a href="{{ url_for('storefront.product_detail', slug=product.slug) }}" class="product-card-media" aria-label="View {{ product.name }}">
+            <img 
+              src="{{ product.image_url }}" 
+              alt="{{ product.name }}"
+              loading="lazy"
+              onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80'"
+            >
+          </a>
+
+          <div class="product-card-body">
+            <span class="product-card-category">{{ product.category.name }}</span>
+            <h3 class="product-card-title">
+              <a href="{{ url_for('storefront.product_detail', slug=product.slug) }}">{{ product.name }}</a>
+            </h3>
+
+            <div class="product-card-price-row">
+              <span class="product-card-price">{{ product.price | format_inr }}</span>
+              {% if product.compare_at_price %}
+                <span class="product-card-compare-price">{{ product.compare_at_price | format_inr }}</span>
+              {% endif %}
+            </div>
+
+            <div class="product-card-actions">
+              <form action="{{ url_for('cart.add_item') }}" method="POST" class="ajax-add-to-cart" style="width: 100%;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="product_id" value="{{ product.id }}">
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="btn btn-outline btn-sm btn-block">
+                  <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                  Add to Cart
+                </button>
+              </form>
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Section 6: Service Highlights -->
+<div class="container">
+  <div class="features-banner">
+    <div class="feature-item">
+      <div class="feature-icon-box">
+        <i data-lucide="shield-check" style="width: 22px; height: 22px;"></i>
+      </div>
+      <div>
+        <h4 class="feature-title">Verified Local Quality</h4>
+        <p class="feature-desc">Authentic goods sourced directly from verified Indian artisans and sustainable workshops.</p>
+      </div>
+    </div>
+
+    <div class="feature-item">
+      <div class="feature-icon-box">
+        <i data-lucide="truck" style="width: 22px; height: 22px;"></i>
+      </div>
+      <div>
+        <h4 class="feature-title">Neighbourhood Delivery</h4>
+        <p class="feature-desc">Prompt delivery across your city, with free shipping on all orders of {{ free_shipping_threshold | format_inr }} or more.</p>
+      </div>
+    </div>
+
+    <div class="feature-item">
+      <div class="feature-icon-box">
+        <i data-lucide="credit-card" style="width: 22px; height: 22px;"></i>
+      </div>
+      <div>
+        <h4 class="feature-title">Direct Guest Checkout</h4>
+        <p class="feature-desc">Place demonstration orders effortlessly without mandatory account sign-up friction.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Section 7: Newsletter -->
+<section class="newsletter-section">
+  <div class="container">
+    <div style="max-width: 520px; margin: 0 auto;">
+      <span class="section-eyebrow">Stay Connected</span>
+      <h2 style="margin-top: var(--space-2); margin-bottom: var(--space-2);">The Neighbourhood Digest</h2>
+      <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">
+        Sign up for seasonal arrivals, artisan spotlight stories, and subscriber-only collection previews.
+      </p>
+
+      <form action="{{ url_for('storefront.newsletter_subscribe') }}" method="POST" class="newsletter-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input 
+          type="email" 
+          name="email" 
+          class="form-control" 
+          placeholder="Enter your email address" 
+          required
+          aria-label="Email Address for Newsletter"
+        >
+        <button type="submit" class="btn btn-primary" style="flex-shrink: 0;">Subscribe</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

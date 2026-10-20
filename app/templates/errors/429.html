@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Too Many Requests (429) — {{ store_name }}{% endblock %}
+
+{% block content %}
+<div class="container section" style="display: flex; justify-content: center; align-items: center; min-height: 50vh;">
+  <div class="empty-state" style="max-width: 540px;">
+    <div class="empty-state-icon" style="color: var(--color-warning); background-color: var(--color-warning-bg);">
+      <i data-lucide="shield-alert" style="width: 32px; height: 32px;"></i>
+    </div>
+    <span class="section-eyebrow">429 Rate Limit</span>
+    <h1 class="empty-state-title" style="margin-top: var(--space-2);">Too Many Attempts</h1>
+    <p class="empty-state-text">
+      You have submitted too many requests in a short interval. Please wait a moment before trying again.
+    </p>
+    <a href="{{ url_for('storefront.home') }}" class="btn btn-primary">
+      Return to Storefront
+    </a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} — {{ store_name }} Portal{% endblock %}
+
+{% block admin_content %}
+<div style="max-width: 840px;">
+
+  <div class="admin-page-header">
+    <div>
+      <a href="{{ url_for('admin.products') }}" class="btn btn-muted btn-sm" style="margin-bottom: var(--space-2);">
+        <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+        Back to Products
+      </a>
+      <h1 style="font-size: 1.85rem; margin-bottom: 0.25rem;">{{ title }}</h1>
+    </div>
+  </div>
+
+  <div class="admin-card" style="padding: var(--space-8);">
+    <form method="POST" novalidate>
+      {{ form.hidden_tag() }}
+
+      <div class="form-group">
+        <label class="form-label" for="name">Product Title *</label>
+        {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+        {% for error in form.name.errors %}
+          <div class="form-error">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="category_id">Category *</label>
+          {{ form.category_id(class="form-select" + (" is-invalid" if form.category_id.errors else "")) }}
+          {% for error in form.category_id.errors %}
+            <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="slug">URL Slug (Optional)</label>
+          {{ form.slug(class="form-control" + (" is-invalid" if form.slug.errors else "")) }}
+          <div class="form-hint">Leave blank to auto-generate from title.</div>
+          {% for error in form.slug.errors %}
+            <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="price">Selling Price (₹) *</label>
+          {{ form.price(class="form-control" + (" is-invalid" if form.price.errors else "")) }}
+          {% for error in form.price.errors %}
+            <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="compare_at_price">Comparison MRP (₹, optional)</label>
+          {{ form.compare_at_price(class="form-control" + (" is-invalid" if form.compare_at_price.errors else "")) }}
+          <div class="form-hint">Shown with strikethrough for discount badge.</div>
+          {% for error in form.compare_at_price.errors %}
+            <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="stock_quantity">Available Inventory *</label>
+          {{ form.stock_quantity(class="form-control" + (" is-invalid" if form.stock_quantity.errors else "")) }}
+          <div class="form-hint">&le; 5 units will trigger low stock alert.</div>
+          {% for error in form.stock_quantity.errors %}
+            <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="image_url">Image URL *</label>
+          {{ form.image_url(class="form-control" + (" is-invalid" if form.image_url.errors else "")) }}
+          {% for error in form.image_url.errors %}
+            <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="description">Detailed Description *</label>
+        {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else "")) }}
+        {% for error in form.description.errors %}
+          <div class="form-error">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div style="display: flex; gap: var(--space-6); margin-top: var(--space-4); margin-bottom: var(--space-6); padding: var(--space-4); background-color: var(--color-surface-muted); border-radius: var(--radius-sm);">
+        <label class="form-checkbox-label">
+          {{ form.is_featured() }}
+          <span>Feature on Homepage</span>
+        </label>
+
+        <label class="form-checkbox-label">
+          {{ form.is_active() }}
+          <span>Active in Storefront Catalog</span>
+        </label>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: flex-end; gap: var(--space-3); border-top: 1px solid var(--color-border); padding-top: var(--space-5);">
+        <a href="{{ url_for('admin.products') }}" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-primary">
+          <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+          Save Product
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+{% endblock %}

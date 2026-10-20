@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy — {{ store_name }}{% endblock %}
+
+{% block content %}
+<div class="container-narrow section">
+  <article style="background-color: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-10);">
+    <span class="section-eyebrow">Data & Security</span>
+    <h1 style="margin-top: var(--space-2); margin-bottom: var(--space-6);">Privacy Policy</h1>
+
+    <div style="font-size: var(--font-size-sm); line-height: 1.8; color: var(--color-text-secondary); display: flex; flex-direction: column; gap: var(--space-4);">
+      <p><strong>Effective Date:</strong> October 2026</p>
+      <p>
+        APNASTORE values your privacy. This policy outlines how demonstration data is treated in this application.
+      </p>
+
+      <h2 style="font-size: 1.25rem; color: var(--color-text-primary);">1. Information Collected</h2>
+      <p>
+        When you place a demonstration order, we collect the customer name, email address, phone number, and physical postal address provided in the checkout form. This data is stored strictly in your local project SQLite database to demonstrate the complete order lifecycle.
+      </p>
+
+      <h2 style="font-size: 1.25rem; color: var(--color-text-primary);">2. Security & Session Storage</h2>
+      <p>
+        Shopping carts are managed via secure, HTTP-only server-side sessions. Administrator authentication uses salted and hashed passwords via Werkzeug security primitives. Order confirmation views are session-protected to prevent unauthorized ID enumeration.
+      </p>
+
+      <h2 style="font-size: 1.25rem; color: var(--color-text-primary);">3. Third-Party Sharing</h2>
+      <p>
+        Your data is never transmitted, sold, or shared with third-party marketing brokers or analytics trackers.
+      </p>
+    </div>
+  </article>
+</div>
+{% endblock %}

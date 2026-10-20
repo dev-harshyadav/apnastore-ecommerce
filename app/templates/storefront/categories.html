@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}All Categories — {{ store_name }}{% endblock %}
+
+{% block content %}
+<div class="container section">
+  <!-- Breadcrumbs -->
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <a href="{{ url_for('storefront.home') }}">Home</a>
+    <span class="breadcrumbs-separator">/</span>
+    <span style="color: var(--color-text-primary);">Categories</span>
+  </nav>
+
+  <div class="section-header text-center" style="margin-top: var(--space-4); margin-bottom: var(--space-12);">
+    <span class="section-eyebrow">Department Directory</span>
+    <h1 class="section-title">Shop by Category</h1>
+    <p class="section-subtitle">
+      Explore our carefully curated product departments, from handspun fabrics to pantry staples.
+    </p>
+  </div>
+
+  <div class="category-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+    {% for category in categories %}
+      <a href="{{ url_for('storefront.catalog', category=category.slug) }}" class="category-card" style="border-radius: var(--radius-lg);">
+        <div class="category-card-img-wrap" style="aspect-ratio: 16 / 10;">
+          <img 
+            src="{{ category.image_url }}" 
+            alt="{{ category.name }}"
+            loading="lazy"
+          >
+        </div>
+        <div class="category-card-body" style="text-align: left; padding: var(--space-5);">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--space-2);">
+            <h2 class="category-card-title" style="font-size: var(--font-size-md);">{{ category.name }}</h2>
+            <span class="category-card-count">{{ category.active_products_count }} products</span>
+          </div>
+          <p style="font-size: var(--font-size-xs); color: var(--color-text-secondary); margin: 0;">
+            {{ category.description }}
+          </p>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

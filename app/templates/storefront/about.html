@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Our Story — {{ store_name }}{% endblock %}
+
+{% block content %}
+<div class="container-narrow section">
+  <!-- Breadcrumbs -->
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <a href="{{ url_for('storefront.home') }}">Home</a>
+    <span class="breadcrumbs-separator">/</span>
+    <span style="color: var(--color-text-primary);">Our Story</span>
+  </nav>
+
+  <article style="background-color: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-10); margin-top: var(--space-4);">
+    <span class="section-eyebrow">About APNASTORE</span>
+    <h1 style="margin-top: var(--space-2); margin-bottom: var(--space-6);">Your Neighbourhood Store, Online.</h1>
+
+    <div style="font-size: var(--font-size-md); line-height: 1.8; color: var(--color-text-secondary); display: flex; flex-direction: column; gap: var(--space-4);">
+      <p>
+        APNASTORE was conceived with a straightforward vision: to bring the warmth, integrity, and thoughtful curation of a beloved local neighbourhood retailer into a clean, modern digital storefront.
+      </p>
+
+      <div style="border-radius: var(--radius-md); overflow: hidden; margin: var(--space-4) 0; border: 1px solid var(--color-border);">
+        <img 
+          src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80" 
+          alt="Curated stationery and artisan notebooks"
+        >
+      </div>
+
+      <h2 style="font-size: 1.5rem; color: var(--color-text-primary); margin-top: var(--space-4);">Rooted in Local Craft & Utility</h2>
+      <p>
+        Across India, countless small workshops, independent roasters, organic apiaries, and textile weavers produce goods of exceptional character. Too often, finding these items requires navigating cluttered marketplaces or disjointed social media sellers. APNASTORE brings together these everyday wonders under one unified, dependable digital roof.
+      </p>
+
+      <h2 style="font-size: 1.5rem; color: var(--color-text-primary); margin-top: var(--space-4);">Our Principles</h2>
+      <ul style="padding-left: 1.5rem; display: flex; flex-direction: column; gap: var(--space-2);">
+        <li><strong>Honest Pricing:</strong> Clear Indian Rupee pricing with no fabricated inflated discounts or artificial scarcity.</li>
+        <li><strong>Direct Guest Checkout:</strong> You shouldn't need a 5-step registration form to purchase a jar of pure Kashmiri honey or a journal.</li>
+        <li><strong>Inventory Integrity:</strong> Real-time stock reservation ensures what you purchase is truly ready to dispatch.</li>
+      </ul>
+
+      <div style="margin-top: var(--space-8); padding-top: var(--space-6); border-top: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: var(--font-size-xs); color: var(--color-text-muted);">Prodigy Infotech Internship Task 03</span>
+        <a href="{{ url_for('storefront.catalog') }}" class="btn btn-primary">
+          Explore the collection
+          <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+        </a>
+      </div>
+    </div>
+  </article>
+</div>
+{% endblock %}

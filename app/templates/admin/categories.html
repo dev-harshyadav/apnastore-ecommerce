@@ -1,0 +1,138 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Manage Categories — {{ store_name }} Portal{% endblock %}
+
+{% block admin_content %}
+<div>
+  <div class="admin-page-header">
+    <div>
+      <h1 style="font-size: 1.85rem; margin-bottom: 0.25rem;">Categories</h1>
+      <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0;">
+        Organize store departments, cover photography, and active navigation filters.
+      </p>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr; gap: var(--space-8);">
+    
+    <!-- Add New Category Form -->
+    <div class="admin-card" style="padding: var(--space-6);">
+      <h2 style="font-size: var(--font-size-md); margin-bottom: var(--space-4);">Add New Category</h2>
+      <form method="POST" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="name">Category Name *</label>
+            {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+            {% for error in form.name.errors %}
+              <div class="form-error">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="slug">URL Slug (Optional)</label>
+            {{ form.slug(class="form-control" + (" is-invalid" if form.slug.errors else "")) }}
+            {% for error in form.slug.errors %}
+              <div class="form-error">{{ error }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="image_url">Cover Image URL</label>
+          {{ form.image_url(class="form-control" + (" is-invalid" if form.image_url.errors else "")) }}
+          {% for error in form.image_url.errors %}
+            <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="description">Short Description</label>
+          {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else "")) }}
+          {% for error in form.description.errors %}
+            <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-checkbox-label">
+            {{ form.is_active() }}
+            <span>Active in Store Navigation</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-sm">
+          <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+          Create Category
+        </button>
+      </form>
+    </div>
+
+    <!-- Existing Categories List -->
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h2 style="font-size: var(--font-size-md); margin: 0;">Existing Categories ({{ categories|length }})</h2>
+      </div>
+
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Slug</th>
+              <th>Products</th>
+              <th>Status</th>
+              <th style="text-align: right;">Store Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cat in categories %}
+              <tr>
+                <td>
+                  <div style="display: flex; align-items: center; gap: var(--space-3);">
+                    {% if cat.image_url %}
+                      <img src="{{ cat.image_url }}" alt="{{ cat.name }}" class="table-thumb">
+                    {% else %}
+                      <div class="table-thumb" style="background: var(--color-surface-muted); display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="folder" style="width: 20px; height: 20px; color: var(--color-text-muted);"></i>
+                      </div>
+                    {% endif %}
+                    <div>
+                      <strong style="color: var(--color-text-primary);">{{ cat.name }}</strong>
+                      <div style="font-size: var(--font-size-xs); color: var(--color-text-secondary); max-width: 380px;">
+                        {{ cat.description or 'No description provided' }}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td style="font-family: monospace; font-size: var(--font-size-xs); color: var(--color-text-muted);">
+                  {{ cat.slug }}
+                </td>
+                <td>
+                  <span class="badge badge-accent">{{ cat.active_products_count }} active</span>
+                </td>
+                <td>
+                  {% if cat.is_active %}
+                    <span class="badge badge-success">Active</span>
+                  {% else %}
+                    <span class="badge badge-muted">Inactive</span>
+                  {% endif %}
+                </td>
+                <td style="text-align: right;">
+                  <a href="{{ url_for('storefront.catalog', category=cat.slug) }}" target="_blank" class="btn btn-muted btn-sm">
+                    View in Shop
+                    <i data-lucide="external-link" style="width: 12px; height: 12px;"></i>
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

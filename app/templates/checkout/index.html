@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout — {{ store_name }}{% endblock %}
+
+{% block content %}
+<div class="container section">
+
+  <!-- Breadcrumbs -->
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <a href="{{ url_for('storefront.home') }}">Home</a>
+    <span class="breadcrumbs-separator">/</span>
+    <a href="{{ url_for('cart.view_cart') }}">Cart</a>
+    <span class="breadcrumbs-separator">/</span>
+    <span style="color: var(--color-text-primary);">Checkout</span>
+  </nav>
+
+  <div style="margin-bottom: var(--space-8);">
+    <span class="section-eyebrow">Guest Checkout</span>
+    <h1 style="margin-top: var(--space-1);">Complete Your Order</h1>
+  </div>
+
+  <div class="checkout-layout">
+    
+    <!-- Left Column: Checkout Details Form -->
+    <div class="checkout-box">
+      <form action="{{ url_for('checkout.index') }}" method="POST" class="checkout-form" novalidate>
+        {{ form.hidden_tag() }}
+
+        <!-- Section A: Contact Details -->
+        <div style="margin-bottom: var(--space-8);">
+          <h2 class="checkout-section-title">
+            <span style="color: var(--color-accent); margin-right: 0.35rem;">1.</span>
+            Contact Information
+          </h2>
+
+          <div class="form-group">
+            <label class="form-label" for="customer_name">Full Name *</label>
+            {{ form.customer_name(class="form-control" + (" is-invalid" if form.customer_name.errors else "")) }}
+            {% for error in form.customer_name.errors %}
+              <div class="form-error">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="customer_email">Email Address *</label>
+              {{ form.customer_email(class="form-control" + (" is-invalid" if form.customer_email.errors else "")) }}
+              <div class="form-hint">Order confirmation & receipt will be sent here.</div>
+              {% for error in form.customer_email.errors %}
+                <div class="form-error">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="customer_phone">Phone Number *</label>
+              {{ form.customer_phone(class="form-control" + (" is-invalid" if form.customer_phone.errors else "")) }}
+              <div class="form-hint">10-digit Indian mobile number for delivery.</div>
+              {% for error in form.customer_phone.errors %}
+                <div class="form-error">{{ error }}</div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Section B: Delivery Address -->
+        <div style="margin-bottom: var(--space-8);">
+          <h2 class="checkout-section-title">
+            <span style="color: var(--color-accent); margin-right: 0.35rem;">2.</span>
+            Delivery Address
+          </h2>
+
+          <div class="form-group">
+            <label class="form-label" for="address_line">Street Address & Landmark *</label>
+            {{ form.address_line(class="form-control" + (" is-invalid" if form.address_line.errors else "")) }}
+            {% for error in form.address_line.errors %}
+              <div class="form-error">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="city">City / District *</label>
+              {{ form.city(class="form-control" + (" is-invalid" if form.city.errors else "")) }}
+              {% for error in form.city.errors %}
+                <div class="form-error">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="state">State / Union Territory *</label>
+              {{ form.state(class="form-select" + (" is-invalid" if form.state.errors else "")) }}
+              {% for error in form.state.errors %}
+                <div class="form-error">{{ error }}</div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="form-group" style="max-width: 240px;">
+            <label class="form-label" for="postal_code">Postal PIN Code *</label>
+            {{ form.postal_code(class="form-control" + (" is-invalid" if form.postal_code.errors else "")) }}
+            <div class="form-hint">6-digit Indian PIN code.</div>
+            {% for error in form.postal_code.errors %}
+              <div class="form-error">{{ error }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Section C: Demonstration Notice & Final Submit -->
+        <div style="padding-top: var(--space-4); border-top: 1px solid var(--color-border);">
+          <div style="background-color: var(--color-surface-muted); padding: var(--space-4); border-radius: var(--radius-sm); margin-bottom: var(--space-5); font-size: var(--font-size-xs); color: var(--color-text-secondary); display: flex; gap: var(--space-3); align-items: flex-start;">
+            <i data-lucide="info" style="width: 18px; height: 18px; color: var(--color-accent); flex-shrink: 0; margin-top: 2px;"></i>
+            <div>
+              <strong>Demonstration Store Notice:</strong> By clicking "Place Demonstration Order", a real order record will be permanently saved to the store database, inventory will be reserved, and you will receive an authentic order confirmation receipt.
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg btn-block">
+            <i data-lucide="check" style="width: 18px; height: 18px;"></i>
+            Place Demonstration Order ({{ cart.grand_total | format_inr }})
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Right Column: Order Review -->
+    <div>
+      <div class="order-summary-card">
+        <h2 class="order-summary-title">Items in Order ({{ cart.total_items }})</h2>
+
+        <div style="display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-6); max-height: 380px; overflow-y: auto; padding-right: var(--space-2);">
+          {% for item in cart.cart_items %}
+            <div class="checkout-review-item">
+              <div style="display: flex; align-items: center; gap: var(--space-3);">
+                <img 
+                  src="{{ item.product.image_url }}" 
+                  alt="{{ item.product.name }}" 
+                  style="width: 44px; height: 44px; border-radius: var(--radius-xs); object-fit: cover; border: 1px solid var(--color-border);"
+                  onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=150&q=80'"
+                >
+                <div>
+                  <div style="font-weight: var(--font-weight-medium); color: var(--color-text-primary);">{{ item.product.name }}</div>
+                  <div style="font-size: var(--font-size-xs); color: var(--color-text-muted);">Qty: {{ item.quantity }} × {{ item.unit_price | format_inr }}</div>
+                </div>
+              </div>
+              <div style="font-weight: var(--font-weight-semibold); color: var(--color-text-primary); white-space: nowrap;">
+                {{ item.line_total | format_inr }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span>{{ cart.subtotal | format_inr }}</span>
+        </div>
+
+        <div class="summary-row">
+          <span>Shipping</span>
+          <span>
+            {% if cart.shipping == 0 %}
+              <span class="badge badge-success">FREE</span>
+            {% else %}
+              {{ cart.shipping | format_inr }}
+            {% endif %}
+          </span>
+        </div>
+
+        <div class="summary-row total-row">
+          <span>Grand Total</span>
+          <span>{{ cart.grand_total | format_inr }}</span>
+        </div>
+
+        <a href="{{ url_for('cart.view_cart') }}" class="btn btn-outline btn-sm btn-block">
+          <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i>
+          Modify Cart Items
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/checkout.js') }}"></script>
+{% endblock %}
